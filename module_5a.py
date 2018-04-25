@@ -92,7 +92,7 @@ def generatePrivPubAddressData():
 #-----------------------------------------------------------------#
 
 #-------------------------[ BITCOIN ADDRESS ]---------------------#
-    # Add the version byte 00 and get the hash160 of the publicKey  from the uncompressed publicKey
+    # Add the version byte 00 and get the hash160 of the publicKey from the uncompressed publicKey
     uncompressedH160WithVersion = '00' + getHash160(uncompressedPublicKey)
     
     # Add 4 bytes checkSum from double sha256 encyption
