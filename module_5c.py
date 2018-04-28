@@ -30,7 +30,7 @@ def getUnspentTransaction():
         'method': "listunspent"
     }
     response = requests.post(url, data=json.dumps(listUnspentTransaction), headers=headers).json()
-    print("getUnspentTransaction: ", json.dumps(response, indent=2, sort_keys=True))
+    #print("getUnspentTransaction: ", json.dumps(response, indent=2, sort_keys=True))
     
     if response.get("result")[0].get('txid'):
         return response.get("result")[0].get('txid')
@@ -65,7 +65,7 @@ def createTransaction(txId, toAddress, toAmount):
     }
 
     response = requests.post(url, data=json.dumps(createTransaction), headers=headers).json()
-    print("CreateRawTransaction: ", json.dumps(response, indent=2, sort_keys=True))
+    #print("CreateRawTransaction: ", json.dumps(response, indent=2, sort_keys=True))
     
     if response.get("error") == None:
         if response.get("result"):

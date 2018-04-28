@@ -67,7 +67,7 @@ def generatePrivPubAddressData():
     privPubAddressData[1] = secretExponentHexified
     # 80 = mainnet, 01 = compressed public key should be generated
     data = '80' + secretExponentHexified + '01'
-    # 4 bytes, 8 hex nibbles
+    # 4 bytes, 8 hex
     checkSum = getDoubleSha256(data)[:8]
     data = data + checkSum
     wif = encoding.b2a_base58(binascii.unhexlify(data))
