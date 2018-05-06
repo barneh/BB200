@@ -23,6 +23,17 @@ headers = {"content-type": "application/json"}
 
 
 #|*************************************************
+#   Method : postRequest(post)
+#   Author : Geir V. Hagen (geha0002)
+#   Date   : 2018-05-02
+#   Purpose: Handle all the API-requests
+#|*************************************************
+def postRequest(post):
+    if post:
+        return requests.post(url, data=json.dumps(post), headers=headers).json()
+
+
+#|*************************************************
 #   Method : viewBlockFromNumber(number)
 #   Author : Geir V. Hagen (geha0002)
 #   Date   : 2018-03-08
@@ -34,27 +45,28 @@ def viewBlockFromNumber(blockNumber):
         "method": "getblockhash",
         "params": [ int(blockNumber) ],
     }
-    blockNumberResponse = requests.post(url, data=json.dumps(getBlockHash), headers=headers).json()['result']
-
-    getBlock = {
-        "method": "getblock",
-        "params": [ blockNumberResponse ],
-    }
     try:
-        block = requests.post(url, data=json.dumps(getBlock), headers=headers).json()
+        blockNumberResponse = postRequest(getBlockHash)
+
+        getBlock = {
+            "method": "getblock",
+            "params": [ blockNumberResponse['result'] ],
+        }
+    
+        block = postRequest(getBlock)
         #print(json.dumps(block, indent=2, sort_keys=True))
         print("Block hash:", block['result']['hash'])
         if 'previousblockhash' in block['result']:
             print("Prev. hash:", block['result']['previousblockhash'])
-        print("Merkle root:", block['result']['merkleroot'])
-        print("Height:", blockNumber)
-        print("Tid:", time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(block['result']['time'])))
-        print("Difficulty:", block['result']['difficulty'])
-        print("Transactions:", len(block['result']['tx']))
-        nTx = 0
-        for i in block['result']['tx']:
-            print("  tx%s: %s" % (nTx, i))
-            nTx+=1
+            print("Merkle root:", block['result']['merkleroot'])
+            print("Height:", blockNumber)
+            print("Tid:", time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(block['result']['time'])))
+            print("Difficulty:", block['result']['difficulty'])
+            print("Transactions:", len(block['result']['tx']))
+            nTx = 0
+            for i in block['result']['tx']:
+                print("  tx%s: %s" % (nTx, i))
+                nTx+=1
     except:
         print("Something went wrong, please try again...")
     
@@ -76,7 +88,7 @@ def viewBlockFromHash(hash):
         "params": [ hash ],
     }
     try:
-        block = requests.post(url, data=json.dumps(getBlock), headers=headers).json()
+        block = postRequest(getBlock)
         #print(json.dumps(block, indent=2, sort_keys=True))
         print("Block hash:", block['result']['hash'])
         if 'previousblockhash' in block['result']:
@@ -110,7 +122,7 @@ def viewTransaction(transactionHash):
         "params": [ transactionHash, True ],
     }
     try:
-        block = requests.post(url, data=json.dumps(getTransaction), headers=headers).json()
+        block = postRequest(getTransaction)
         #print(json.dumps(block, indent=2, sort_keys=True))
         print("Txid (hash):", block['result']['txid'])
         print("Med i block:", block['result']['blockhash'])
@@ -145,7 +157,7 @@ def listOutputsForAddress(address):
         "method": "getblockcount",
     }
     try:
-        block = requests.post(url, data=json.dumps(getBlockCount), headers=headers).json()
+        block = postRequest(getBlockCount)
         #print(json.dumps(block, indent=2, sort_keys=True))
         noOfBlocks = block['result']
         startBlock = 0
@@ -159,7 +171,7 @@ def listOutputsForAddress(address):
                 "method": "getblockhash",
                 "params": [ int(n) ],
             }
-            block = requests.post(url, data=json.dumps(getBlockHash), headers=headers).json()
+            block = postRequest(getBlockHash)
             #print(json.dumps(block, indent=2, sort_keys=True))
             blockHash = block['result']
             
@@ -167,7 +179,7 @@ def listOutputsForAddress(address):
                 "method": "getblock",
                 "params": [ blockHash ],
             }
-            block = requests.post(url, data=json.dumps(getBlock), headers=headers).json()
+            block = postRequest(getBlock)
             #print(json.dumps(block, indent=2, sort_keys=True))
             txId = block['result']['tx']
 
@@ -176,7 +188,7 @@ def listOutputsForAddress(address):
                     "method": "getrawtransaction",
                     "params": [ transaction, True ],
                 }
-                block = requests.post(url, data=json.dumps(getTransaction), headers=headers).json()
+                block = postRequest(getTransaction)
                 #print(json.dumps(block, indent=2, sort_keys=True))
                 if block['result']:
                     if 'vout' in block['result']:
@@ -225,39 +237,38 @@ def fetchStartupValues():
     noOfBlocks = {
             "method": "getblockcount",
     }
-    noOfBlocksResponse = requests.post(url, data=json.dumps(noOfBlocks), headers=headers).json()
+    noOfBlocksResponse = postRequest(noOfBlocks)
     #print(json.dumps(noOfBlocksResponse, indent=2, sort_keys=True))
 
     blockStorageSize = {
             "method": "getblockchaininfo",
     }
-    storageSizeResponse = requests.post(url, data=json.dumps(blockStorageSize), headers=headers).json()
+    storageSizeResponse = postRequest(blockStorageSize)
     #print(json.dumps(storageSizeResponse, indent=2, sort_keys=True))
 
     latestBlock = {
             "method": "getbestblockhash",
     }
-    latestBlockResponse = requests.post(url, data=json.dumps(latestBlock), headers=headers).json()
+    latestBlockResponse = postRequest(latestBlock)
     #print(json.dumps(latestBlockResponse, indent=2, sort_keys=True))
 
     memPoolSize = {
             "method": "getmempoolinfo",
     }
-    memPoolSizeResponse = requests.post(url, data=json.dumps(memPoolSize), headers=headers).json()
+    memPoolSizeResponse = postRequest(memPoolSize)
     #print(json.dumps(memPoolSizeResponse, indent=2, sort_keys=True))
 
     noOfConnections = {
             "method": "getconnectioncount",
     }
-    noOfConnectionsRespose = requests.post(url, data=json.dumps(noOfConnections), headers=headers).json()
+    noOfConnectionsRespose = postRequest(noOfConnections)
     #print(json.dumps(noOfConnectionsRespose, indent=2, sort_keys=True))
     
-    values = {}
-    values[0] = noOfBlocksResponse['result']
-    values[1] = storageSizeResponse['result']['size_on_disk']
-    values[2] = latestBlockResponse['result']
-    values[3] = memPoolSizeResponse['result']['size']
-    values[4] = noOfConnectionsRespose['result']
+    values = (noOfBlocksResponse['result'], 
+              storageSizeResponse['result']['size_on_disk'],
+              latestBlockResponse['result'],
+              memPoolSizeResponse['result']['size'],
+              noOfConnectionsRespose['result'])
 
     return values
 
