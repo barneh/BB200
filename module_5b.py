@@ -56,7 +56,6 @@ def generatePrivPubAddressData():
     rand = codecs.encode(os.urandom(32), 'hex').decode()
     secretExponent = int('0x' + rand, 0)
     #secretExponent = 10 # Uses 10 for test, to see that everything matches up!
-    privPubAddressData[0] = secretExponent
 
     # Calculate the public key (point) (also known as the P, in the formula P = k * G)
     publicKeyPoint = secretExponent * gPoint
@@ -64,14 +63,12 @@ def generatePrivPubAddressData():
 
 #-------------------------[ PRIVATE KEY ]-------------------------#
     secretExponentHexified = '%064x' % secretExponent
-    privPubAddressData[1] = secretExponentHexified
     # 80 = mainnet, 01 = compressed public key should be generated
     data = '80' + secretExponentHexified + '01'
     # 4 bytes, 8 hex
     checkSum = getDoubleSha256(data)[:8]
     data = data + checkSum
     wif = encoding.b2a_base58(binascii.unhexlify(data))
-    privPubAddressData[2] = wif
 #-----------------------------------------------------------------#
 
 #-------------------------[ PUBLIC KEY ]--------------------------#
@@ -81,12 +78,10 @@ def generatePrivPubAddressData():
     y = '%064x' % publicKeyPoint.y()
     uncompressedPublicKey = '04' + x + y
     #print('Public key, uncompressed', uncompressedPublicKey)
-    privPubAddressData[3] = uncompressedPublicKey 
 
     # Compressed public key has the prefix 02 if y is even, 03 if y is odd
     compressedPublicKey = ('02' if publicKeyPoint.y() % 2 == 0 else '03') + x
     #print('Public key, compressed', compressedPublicKey)
-    privPubAddressData[4] = compressedPublicKey
 #-----------------------------------------------------------------#
 
 #-------------------------[ BITCOIN ADDRESS ]---------------------#
@@ -100,7 +95,6 @@ def generatePrivPubAddressData():
     # Convert to base58
     bitCoinAddressUncompressed = encoding.b2a_base58(binascii.unhexlify(uncompressedH160WithVersion))
     #print('Bitcoin address (uncomp):', bitCoinAddressUncompressed)
-    privPubAddressData[5] = bitCoinAddressUncompressed
 
 
     # Add the version byte 00 and gets the hash160 of the publicKey from the compressed publicKey
@@ -112,7 +106,9 @@ def generatePrivPubAddressData():
     
     # Convert to base58
     bitCoinAddressCompressed = encoding.b2a_base58(binascii.unhexlify(compressedH160WithVersion))
-    privPubAddressData[6] = bitCoinAddressCompressed
+
+    privPubAddressData = (secretExponent, secretExponentHexified, wif, uncompressedPublicKey, 
+                          compressedPublicKey, bitCoinAddressUncompressed, bitCoinAddressCompressed)
 
     return privPubAddressData
 #-----------------------------------------------------------------#

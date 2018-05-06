@@ -20,20 +20,30 @@ headers = {"content-type": "application/json"}
 
 
 # |*************************************************
-#   Method : getUnspentTransaction()
+#   Method : getTransaction()
 #   Author : Geir V. Hagen (geha0002)
-#   Date   : 2018-04-23
-#   Purpose: List unspent transaction.
+#   Date   : 2018-05-03
+#   Purpose: Get transaction data.
 # |*************************************************
-def getUnspentTransaction():
-    listUnspentTransaction = {
-        'method': "listunspent"
+def getTransaction(txId):
+    transaction = {
+        "method": "getrawtransaction",
+        "params": [txId, True]
     }
-    response = requests.post(url, data=json.dumps(listUnspentTransaction), headers=headers).json()
-    #print("getUnspentTransaction: ", json.dumps(response, indent=2, sort_keys=True))
     
-    if response.get("result")[0].get('txid'):
-        return response.get("result")[0].get('txid')
+    response = requests.post(url, data=json.dumps(transaction), headers=headers).json()
+    #print("getTransaction: ", json.dumps(response, indent=2, sort_keys=True))
+
+    if response.get("error") == None:
+        if response.get("result"):
+            myResponse = (response["result"]["txid"],
+                  response["result"]["vout"][0]["n"],
+                  response["result"]["vout"][0]["value"],
+                  str(response["result"]["vout"][0]["scriptPubKey"]["addresses"]).strip("['']"))
+    
+            return myResponse
+        else:
+            return ""
     else:
         print("\n\tError: ", response.get("error"))
         return ""
@@ -45,19 +55,24 @@ def getUnspentTransaction():
 #   Date   : 2018-04-19
 #   Purpose: Create an transcation.
 # |*************************************************
-def createTransaction(txId, toAddress, toAmount):
+def createTransaction(spendableTransaction, toAddress):
     # Input parameters - txId and vout
     inputs = [
         {
-            'txid': txId,
-            "vout" : 0
+            "txid": str(spendableTransaction[0]), # txId
+            "vout" : spendableTransaction[1] # vout
         }
     ]
     
+    # Spend only 95% of the spendable amount
+    amountToSend = (95.0 * float(spendableTransaction[2])) / 100.0
+    backTo = spendableTransaction[2] - amountToSend
+
     # Output parameters - The address that is gone get the spendings and the amount
     outputs = {
-        toAddress: toAmount
+        str(toAddress): float(amountToSend), str(spendableTransaction[3]): float(backTo)
     }
+    #print("inputs: ", inputs, "output:", outputs)
 
     createTransaction = {
         "method": "createrawtransaction",
@@ -69,7 +84,7 @@ def createTransaction(txId, toAddress, toAmount):
     
     if response.get("error") == None:
         if response.get("result"):
-            return response.get('result')
+            return response.get("result")
         else:
             return ""
     else:
@@ -142,7 +157,7 @@ def validateAddress(inputAddress):
     }
     response = requests.post(url, data=json.dumps(validateInputAddress), headers=headers).json()
     
-    return response['result']['isvalid']
+    return response["result"]["isvalid"]
 
 
 # |*************************************************
@@ -170,18 +185,12 @@ def sendBitCoin(data):
     '''
 
     #DEBUG DATA
-    fromAddress = "17fsyTAEDYu2SXtvgSrwGa6gf529AU46NF"
-    toAddress = "1MNaz9VrCdyDQ8G3aNqJWsaZqvxCHP9TRW"
-    amount = "0.00000613"
-    exchangeAddress = ""
-    exchangeRate = ""
-    privateKey = ["5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreDEUj22G"]
+    txId = "9ad07547926c5be3742bdbf5de893d4d84748672b5ff9f8670e82223143f67df"
 
-    txId = getUnspentTransaction()
-    if txId != "":
+    spendableTransaction = getTransaction(txId)
+    if spendableTransaction:
         print("Skapar transaktionen...")
-        createdTrans = createTransaction(txId, data[6], amount)
-        #createdTrans = createTransaction(txId, toAddress, amount)
+        createdTrans = createTransaction(spendableTransaction, data[6])
     else:
         return
     
