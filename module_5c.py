@@ -166,7 +166,6 @@ def validateAddress(inputAddress):
 #            fetch user input.
 # |*************************************************
 def sendBitCoin(data):
-    
     txId = input("Ange txId: ")
     toAddress = input("Ange adress att skicka till: ")
     while validateAddress(toAddress) != True:
@@ -175,8 +174,8 @@ def sendBitCoin(data):
 
     amount = input("Ange belopp: ")
     exchangeRate = input("Ange fee per kB: ")
+    privateKey = input("Ange privata nyckel: ")
     
-
     # TEST DATA for simplefy the sending
     #txId = "5d9028b0d4ad5c2ce9d2be7c0b7b439248fcf19bcfbafd6c9aa7a63bb944e5a3"
     #toAddress = "1G22MrZSGgwj9bWcJUSF4GgqXR2ExYzQEh"
@@ -192,7 +191,7 @@ def sendBitCoin(data):
     if createdTrans != "":
         print("\tTransaktionen skapat...")
         print("Signerar transaktionen...")
-        signHex = signTranscation(createdTrans, data[2])
+        signHex = signTranscation(createdTrans, privateKey)
     else:
         print("Något gick fel vid skapande av transaktionen.\n")
         return
