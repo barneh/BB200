@@ -55,8 +55,7 @@ def getTransaction(txId):
 #   Date   : 2018-04-19
 #   Purpose: Create an transcation.
 # |*************************************************
-def createTransaction(spendableTransaction, toAddress):
-    # Input parameters - txId and vout
+def createTransaction(spendableTransaction, toAddress, amount, exchangeRate):
     inputs = [
         {
             "txid": str(spendableTransaction[0]), # txId
@@ -64,15 +63,15 @@ def createTransaction(spendableTransaction, toAddress):
         }
     ]
     
-    # Spend only 95% of the spendable amount
-    amountToSend = (95.0 * float(spendableTransaction[2])) / 100.0
-    backTo = spendableTransaction[2] - amountToSend
+    #TEST SPEND ALL MNIUS 0.001
+    #amountToSend = float(spendableTransaction[2] - 0.001)
+
+    amountToSend = float(amount) - float(exchangeRate)
 
     # Output parameters - The address that is gone get the spendings and the amount
     outputs = {
-        str(toAddress): float(amountToSend), str(spendableTransaction[3]): float(backTo)
+        str(toAddress): float(amountToSend)
     }
-    #print("inputs: ", inputs, "output:", outputs)
 
     createTransaction = {
         "method": "createrawtransaction",
@@ -102,7 +101,6 @@ def signTranscation(transactionToBeSigned, privateKey):
     signTransaction = {
         "method": "signrawtransaction",
         "params": [transactionToBeSigned, None,  [privateKey]]
-        #"params": [transactionToBeSigned, None,  None]
     }
 
     response = requests.post(url, data=json.dumps(signTransaction), headers=headers).json()
@@ -134,8 +132,8 @@ def sendTransaction(hex):
     #print("SendRawTransaction: ", json.dumps(response, indent=2, sort_keys=True))
 
     if response.get("error") == None:
-        if response.get("txid"):
-            return response.get("txid")
+        if response.get("result"):
+            return response.get("result")
         else:
             return ""
     else:
@@ -168,29 +166,26 @@ def validateAddress(inputAddress):
 #            fetch user input.
 # |*************************************************
 def sendBitCoin(data):
-    '''
-    fromAddress = input("Ange adress att sicka från: ")
-    while validateAddress(fromAddress) != True:
-        print("Adressen du angav ", fromAddress, " är inte giltig. Prova igen!")
-        fromAddress = input("Ange adress att sicka från: ")
-
+    
+    txId = input("Ange txId: ")
     toAddress = input("Ange adress att skicka till: ")
     while validateAddress(toAddress) != True:
         print("Adressen du angav ", toAddress, " är inte giltig. Prova igen!")
         toAddress = input("Ange adress att skicka till: ")
 
     amount = input("Ange belopp: ")
-    exchangeAddress = input("Ange växeladress: ")
     exchangeRate = input("Ange fee per kB: ")
-    '''
+    
 
-    #DEBUG DATA
-    txId = "9ad07547926c5be3742bdbf5de893d4d84748672b5ff9f8670e82223143f67df"
+    # TEST DATA for simplefy the sending
+    #txId = "5d9028b0d4ad5c2ce9d2be7c0b7b439248fcf19bcfbafd6c9aa7a63bb944e5a3"
+    #toAddress = "1G22MrZSGgwj9bWcJUSF4GgqXR2ExYzQEh"
+    #privateKey = "L4RQ5iHKyfEgsMUEJYpZ47UJLP34eRkBoAU3VUTHTea4dMio98gC"
 
     spendableTransaction = getTransaction(txId)
     if spendableTransaction:
         print("Skapar transaktionen...")
-        createdTrans = createTransaction(spendableTransaction, data[6])
+        createdTrans = createTransaction(spendableTransaction, toAddress, amount, exchangeRate)
     else:
         return
     
@@ -198,7 +193,6 @@ def sendBitCoin(data):
         print("\tTransaktionen skapat...")
         print("Signerar transaktionen...")
         signHex = signTranscation(createdTrans, data[2])
-        #signHex = signTranscation(createdTrans, privateKey)
     else:
         print("Något gick fel vid skapande av transaktionen.\n")
         return
@@ -212,7 +206,8 @@ def sendBitCoin(data):
         return
 
     if sendHex != "":
-        print("\tTransaktionen sänt!")
+        print("\tTransaktionen sänt...")
+        print("Transaktionen ID:", sendHex)
     else:
         print("Något gick fel vid sänding av transaktionen.\n")
         return
